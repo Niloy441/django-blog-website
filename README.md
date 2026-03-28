@@ -103,7 +103,7 @@ The project can be deployed on platforms like **PythonAnywhere**, **Render**, or
 ## Reference Blog Site
 
 A live example of a similar blog can be found at:  
-[https://amrita1618.pythonanywhere.com/](https://amrita1618.pythonanywhere.com/)
+[https://niloy47321.pythonanywhere.com/](https://niloy47321.pythonanywhere.com/)
 
 ## License
 
