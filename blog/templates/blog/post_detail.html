@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <h1 class="card-title">{{ post.title }}</h1>
+        <p class="text-muted">By {{ post.author }} | {{ post.created_date|date:"F d, Y H:i" }}</p>
+        <hr>
+        <div class="post-content">
+            {{ post.content|linebreaks }}
+        </div>
+        <div class="mt-4 d-flex justify-content-between align-items-center">
+            <div>
+                <button id="like-btn" class="btn {% if liked %}btn-danger{% else %}btn-outline-danger{% endif %}" data-post-id="{{ post.pk }}">
+                    {% if liked %}Unlike{% else %}Like{% endif %} <span id="like-count">{{ post.total_likes }}</span>
+                </button>
+                <span class="ms-3 text-muted">{{ post.comments.count }} comments</span>
+            </div>
+            {% if user == post.author %}
+            <div>
+                <a href="{% url 'post_edit' pk=post.pk %}" class="btn btn-outline-warning">Edit</a>
+                <a href="{% url 'post_delete' pk=post.pk %}" class="btn btn-outline-danger">Delete</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Comments Section -->
+<div class="card">
+    <div class="card-header">
+        <h3>Comments</h3>
+    </div>
+    <div class="card-body">
+        {% if user.is_authenticated %}
+        <form method="POST" class="mb-4">
+            {% csrf_token %}
+            {{ comment_form.as_p }}
+            <button type="submit" class="btn btn-primary">Add Comment</button>
+        </form>
+        {% else %}
+        <p class="alert alert-info">You must <a href="{% url 'login' %}">login</a> to comment.</p>
+        {% endif %}
+
+        <div class="comments-list">
+            {% for comment in comments %}
+            <div class="border-bottom pb-3 mb-3">
+                <div class="d-flex justify-content-between">
+                    <strong>{{ comment.author }}</strong>
+                    <small class="text-muted">{{ comment.created_date|timesince }} ago</small>
+                </div>
+                <p class="mt-2">{{ comment.text|linebreaks }}</p>
+            </div>
+            {% empty %}
+            <p class="text-muted">No comments yet. Be the first to comment!</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('like-btn').addEventListener('click', function() {
+    const postId = this.dataset.postId;
+    const likeBtn = this;
+    const likeCount = document.getElementById('like-count');
+    
+    fetch(`/post/${postId}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        likeBtn.textContent = data.liked ? 'Unlike ' : 'Like ';
+        likeBtn.classList.toggle('btn-danger', data.liked);
+        likeBtn.classList.toggle('btn-outline-danger', !data.liked);
+        likeCount.textContent = data.total_likes;
+    })
+    .catch(error => console.error('Error:', error));
+});
+</script>
+{% endblock %}
